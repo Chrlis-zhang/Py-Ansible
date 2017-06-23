@@ -1,27 +1,67 @@
 {% extends "base.html" %}
 {% block content %}
-<script type="text/javascript">
-//    $(function () {
-//        var yml_name = $('#yml_name option:selected').html();
-//        $("#yml_name").change(function () {
-//        yml_name = $(this).find("option:selected").html();
-//        $.post("/hosts_maintain",{"yml_name":yml_name});
-//    });
-//  });
+<script>
 
-    function update_hosts_file() {
-        var hosts_file_text = $('#hosts_file_text').val();
+        // 编辑安装信息
+    function get_edit_info($this)
+    {
+        var md_ip_add = $($this).parent().parent("tr").find("td:eq(1)").html()
+//        var md_app_name_cn = $($this).parent().parent("tr").find("td:eq(3)").html()
+//        var md_app_platform = $($this).parent().parent("tr").find("td:eq(4)").html()
+//        var md_machine_addr = $($this).parent().parent("tr").find("td:eq(5)").html()
+        var md_description = $($this).parent().parent("tr").find("td:eq(6)").html()
+
+        if(!$this)
+        {
+            alert('Error！');
+            return false;
+        }
+
+    $.ajax(
+    {
+         success:function ()
+            {
+                $("#md_ip_add").val(md_ip_add);
+//                $("#md_app_name_cn").val(md_app_name_cn);
+//                $("#md_app_platform").val(md_app_platform);
+//                $("#md_machine_addr").val(md_machine_addr);
+                $("#md_description").val(md_description);
+            },
+         error:function()
+            {
+                alert('请求出错');
+            },
+          complete:function()
+            {
+                // $('#tips').hide();
+            }
+    });
+        return false;
+    }
+
+    function install_software() {
+        var remote_path=document.getElementById("md_remote_path").value;
+        var ip_add=document.getElementById("md_ip_add").value;
+        var remote_user=document.getElementById("md_remote_user").value;
+        var software_name=document.getElementById("md_software_name");
+        var software_index = software_name.selectedIndex;
         $.ajax({
             type: "POST",
-            url: "/hosts_maintain",
+            url: "/software_install/add",
             data:{
-                "hosts_file_text": hosts_file_text
+                "ip_add": ip_add,
+                "remote_path": remote_path,
+                "remote_user": remote_user,
+                "software_index": software_index
             },
 
             success: function(){
+                $(function() {
+                    $('#addUserModal').modal('hide')
+                });
                 swal({
-                    title: "更新成功！",
-                    text: "已写入hosts文件",
+                    title: "安装成功！",
+                    text: "已安装到远程服务器",
                     timer: 500,
                     showConfirmButton: false
                 },
@@ -37,63 +77,146 @@
         })
     }
 
-
-    $(function () {
-        $("#des .btn").click(function(e){
-            e.preventDefault();
-            $.post("/hosts_maintain", {'button_index' : $("#des .btn").index(this)}
-            );
-        });
-    });
 </script>
-
-<form role="form" action="" method="post">
-    <div class="row">
-        <div class="col-xs-4 col-xs-offset-0" id="des">
-            <ul class="nav navbar-nav" contenteditable="false">
-                    <li><a href="#">Hosts文件信息</a></li>
-                    <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">YML文件信息 <b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        {% for file_name in file_list %}
-                        <li><a href="#">{{ file_name }}</a></li>
-                        {% endfor %}
-                    </ul>
-                    </li>
-            </ul>
-        </div>
-
-        <div class="col-xs-8">
-            <h4>Test Ansible</h4>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-xs-4">
-            <HR>
-            <textarea id="hosts_file_text" class="form-control" rows="10">{{ all_the_text }}</textarea>
-            <button type="button" class="btn btn-primary col-xs-offset-10" onclick="update_hosts_file();">更新</button>
-        </div>
-        <div class="col-xs-8">
-            <HR>
-            {{ ansibleform.hidden_tag() }}
-            <div class="row col-xs-8 form-group">
-                    <div class="col-xs-4">
-                        {{ ansibleform.ansible_groupname(class="form-control", placeholder="输入Hosts组名") }}
-                    </div>
-                    <div class="col-xs-4">
-                        {{ ansibleform.ansible_shell(class="form-control", placeholder="输入命令") }}
-                    </div>
-                <div class="col-xs-2">
-                    <button class="btn btn-primary" value="执行">执行</button>
-                 </div>
+<HR>
+<form class="form-horizontal" role="form" action="" method="post" name="app_add">
+    {{ hostsform.hidden_tag() }}
+    <div class="row col-xs-12 form-group">
+            <div class="col-xs-2  col-xs-offset-8">
+                {{ hostsform.ip_address(class="form-control", placeholder="输入IP地址") }}
             </div>
-        </div>
-        <div class="col-xs-8">
-            <h5>{{ output }}</h5>
-        </div>
+        <div class="col-xs-2">
+            <button class="btn btn-info btn-search" style="margin-left:3px">查询</button>
+         </div>
     </div>
 </form>
 
-{% endblock %}
+<div class="row">
+    <div class="col-md-12 col-md-offset-0">
+            <table align="center" class="table table-condensed table-bordered" data-toggle="table">
+              <!--<caption>服务器列表信息如下</caption>-->
+              <thead>
+                <tr class="info">
+                    <th>序号</th>
+                    <th>IP地址</th>
+                    <th>应用名称</th>
+                    <th>所属平台</th>
+                    <th>机房位置</th>
+                    <th>运行状态</th>
+                    <th>备注</th>
+                    <th>操作</th>
+                </tr>
+              </thead>
 
+              <tbody>
+               {% for result in db_result %}
+                <tr id="tr_{{result[0]}}">
+                    <td>{{result[0]}}</td>
+                    <td>{{result[1]}}</td>
+                    <td>{{result[10]}}</td>
+                    <td>{{result[11]}}</td>
+                    <td>{{result[12]}}</td>
+                    {% if result[13] == 0 %}
+                    <td>
+                        <a class="btn-success"><span class="glyphicon glyphicon-ok-circle"></span>正在运行</a>
+                    </td>
+                    {% elif result[13] == 1 %}
+                    <td>
+                        <a class="btn-danger"><span class="glyphicon glyphicon-remove-circle"></span>已经停止</a>
+                    </td>
+                    {% else %}
+                     <td>
+                        <a class="btn-primary"><span class="glyphicon glyphicon-ban-circle"></span>尚未使用</a>
+                    </td>
+                    {% endif %}
+                    <td>{{result[14]}}</td>
+                    <td class="col-md-3">
+                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" onclick="get_edit_info(this)" data-target="#addUserModal"><span class="glyphicon glyphicon-wrench"></span> 软件安装</button>
+                        <button type="button" class="btn btn-danger btn-sm" disabled="disabled" onclick=""><span class="glyphicon glyphicon-remove"></span> 软件卸载</button>
+                        <a href="#" class="btn btn-info btn-sm" disabled="disabled"><span class="glyphicon glyphicon-facetime-video"></span> 记录</a>
+                    </td>
+                        <script>
+                            $(function () { $("[data-toggle='tooltip']").tooltip(); });
+                        </script>
+                </tr>
+              {% endfor %}
+              </tbody>
+
+            </table>
+    </div>
+
+                                                                      <!-- 模态框（Modal） -->
+        <form method="post" action="" class="form-horizontal" role="form" id="form_data" onsubmit="" style="margin: 20px;">
+        <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                            &times;
+                        </button>
+                        <h4 class="modal-title" id="myModalLabel">
+                            安装信息
+                        </h4>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form-horizontal" role="form">
+                            <div class="form-group">
+                                <label for="md_ip_add" class="col-sm-2 control-label">IP地址</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" disabled="disabled" name="md_ip_add" value="{md_ip_add}" id="md_ip_add">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="md_remote_user" class="col-sm-2 control-label">执行用户</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="md_remote_user" value="oriental" id="md_remote_user" placeholder="默认oriental用户">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="md_software_name" class="col-sm-2 control-label">选择软件</label>
+                                <div class="col-sm-9">
+                                    <select class="form-control" id="md_software_name">
+                                        <option id="default">请选择</option>
+                                        <option id="jetty8">Jetty 8</option>
+                                        <option id="jdk6">JDK 1.6</option>
+                                        <option id="jdk7">JDK 1.7</option>
+                                        <option id="jdk8">JDK 1.8</option>
+                                        <option id="scripts">Scripts</option>
+                                        <option id="jjs6">Jetty8 + JDK1.6 + Scripts</option>
+                                        <option id="jjs7">Jetty8 + JDK1.7 + Scripts</option>
+                                        <option id="jjs8">Jetty8 + JDK1.8 + Scripts</option>
+                                    </select>
+                                    <!--<input type="text" class="form-control" name="md_software_name" value="Jetty8" id="md_software_name" placeholder="请选择安装软件">-->
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="md_remote_path" class="col-sm-2 control-label">安装位置</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="md_remote_path" value="/" id="md_remote_path" placeholder="默认系统根目录">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="md_description" class="col-sm-2 control-label">备注</label>
+                                <div class="col-sm-9">
+                                    <textarea  class="form-control"  name="md_description" disabled="disabled" value="{md_description}" id="md_description" placeholder="备注"></textarea>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="install_software();">
+                            开始安装
+                        </button><span id="tip"> </span>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal -->
+        </div>
+        </form>
+</div>
+
+{% endblock %}
 

@@ -22,7 +22,7 @@ def monitor_timer():
     logging.info('*************服务器状态巡检任务开始执行*************')
 
     # --------------------------------连通性检测--------------------------------
-
+    logging.info('开始进行连通性扫描检测，请稍后.......')
     offline = "SELECT ip_eth0, host_name FROM app_hosts_info WHERE app_status=1"
     db.query(offline)
     offline_result = db.fetchAllRows()
@@ -87,9 +87,10 @@ def monitor_timer():
                 pass
     else:
         pass
-
+    logging.info('连通性扫描检测结束，等待下一次扫描检测')
     # --------------------------------内存检测--------------------------------
 
+    logging.info('开始进行内存扫描检测，请稍后.......')
     mem_rate = "SELECT ip_eth0, host_name, mem_rate FROM app_hosts_info WHERE mem_rate > 85"
     db.query(mem_rate)
     mem_rate_result = db.fetchAllRows()
@@ -154,9 +155,11 @@ def monitor_timer():
                 pass
     else:
         pass
+    logging.info('内存扫描检测结束，等待下一次扫描检测')
 
     # --------------------------------磁盘检测--------------------------------
 
+    logging.info('开始进行磁盘扫描检测，请稍后.......')
     disk_rate = "SELECT ip_eth0, host_name, disk_rate FROM app_hosts_info WHERE disk_rate > 85"
     db.query(disk_rate)
     disk_rate_result = db.fetchAllRows()
@@ -221,9 +224,11 @@ def monitor_timer():
                 pass
     else:
         pass
+    logging.info('磁盘扫描检测结束，等待下一次扫描检测')
 
     # --------------------------------Swap检测--------------------------------
 
+    logging.info('开始进行内存交换分区扫描检测，请稍后.......')
     swap_rate = "SELECT ip_eth0, host_name, swap_rate FROM app_hosts_info WHERE swap_rate > 85"
     db.query(swap_rate)
     swap_rate_result = db.fetchAllRows()
@@ -288,8 +293,9 @@ def monitor_timer():
                     pass
     else:
         pass
+    logging.info('内存交换分区扫描检测结束，等待下一次扫描检测')
 
-    logging.info('*************服务器状态巡检任务执行结束*************')
+    # logging.info('*************服务器状态巡检任务执行结束*************')
 
 
 # 关闭巡检定时器

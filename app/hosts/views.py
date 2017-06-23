@@ -141,12 +141,13 @@ def hosts_maintain():
         file_object.close()
 
 
-    # if ansibleform.validate_on_submit():
-    #     ansible_groupname = ansibleform.ansible_groupname.data
-    #     ansible_shell = ansibleform.ansible_shell.data
-    #     (status, output) = commands.getstatusoutput('ansible ' + ansible_groupname + ' ' + ansible_shell)
-    #     return render_template('hosts/hosts_maintain.html', ansibleform=ansibleform, all_the_text=all_the_text,
-    #                            file_list=file_list, output=output)
+    if ansibleform.validate_on_submit():
+        ansible_groupname = ansibleform.ansible_groupname.data
+        ansible_shell = ansibleform.ansible_shell.data
+        print ansible_groupname,ansible_shell
+        (status, output) = commands.getstatusoutput('ansible ' + ansible_groupname + ' -u oriental -m shell -a ' + '"' + ansible_shell + '"')
+        return render_template('hosts/hosts_maintain.html', ansibleform=ansibleform, all_the_text=all_the_text,
+                               file_list=file_list, output=output)
 
     return render_template('hosts/hosts_maintain.html', ansibleform=ansibleform, all_the_text=all_the_text,
                            file_list=file_list)
