@@ -54,25 +54,45 @@
                 "remote_user": remote_user,
                 "software_index": software_index
             },
-
-            success: function(){
+            beforeSend: function(){
                 $(function() {
                     $('#addUserModal').modal('hide')
                 });
+//                swal({
+//                  title: "开始安装，请稍后......",
+//                  text: "安装过程可能需要几分钟",
+//                  type: "info",
+//                });
                 swal({
-                    title: "安装成功！",
-                    text: "已安装到远程服务器",
-                    timer: 500,
-                    showConfirmButton: false
-                },
-                        function () {
-                        setTimeout(function(){
-                            window.location.reload();
-                        }, 500);
+                  title: "开始安装，请稍后......",
+                  text: "安装过程可能需要几分钟，请耐心等待...",
+                  timer: 5000,
+                  showConfirmButton: false
                 });
             },
+            success: function(data){
+//                $(function() {
+//                    $('#addUserModal').modal('hide')
+//                });
+
+                swal({
+                    title: "安装完成！",
+//                    text: "以下显示具体安装信息：",
+                    confirmButtonText: "安装信息",
+//                    timer: 500,
+//                    showConfirmButton: false
+                        },
+                        function () {
+                            alert(data.installResult),
+                            setTimeout(function(){
+                                window.location.reload();
+                            }, 500);
+//                            alert(data.installResult)
+                        }
+                );
+            },
             error: function () {
-                alert("异常！");
+                swal("异常错误", "此错误很诡异，请检查", "error");
             },
         })
     }

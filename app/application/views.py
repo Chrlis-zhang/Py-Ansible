@@ -2,7 +2,7 @@
 import commands
 
 from app import app
-from flask import request
+from flask import request, jsonify
 from flask import render_template
 from app.models import MysqlDb_Connection
 from app.forms import HostsForm
@@ -131,6 +131,7 @@ def add_software():
     print software_name
     (status, output) = commands.getstatusoutput(
         "ansible-playbook /tools/ansible/installSingle.yml --extra-vars \"{'hosts':'" + ip_add + "', 'user':'" + remote_user + "', 'softwareName':'" + software_name + "', 'remotePath':'" + remote_path + "'}\"")
-    print status, output
-    return render_template('index.html')
+    # print status, output
+    # return render_template('index.html')
+    return jsonify({"installResult": output})
 
